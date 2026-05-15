@@ -85,6 +85,7 @@ module AgendaFaculdade
               next json(env, {"error" => "unauthorized"}, 401)
             end
 
+            refresh_session_cookie(env)
             json(env, {"user" => user_json(user), "calendarConnected" => @store.calendar_connected?(user.id)})
           end
 
@@ -129,6 +130,7 @@ module AgendaFaculdade
             user = require_user(env)
             next user unless user.is_a?(Domain::User)
 
+            refresh_session_cookie(env)
             state = Infrastructure::IdGenerator.generate("state")
             set_cookie(env, "calendar_oauth_state", state, 600)
             env.redirect @oauth.auth_url(
@@ -357,6 +359,11 @@ module AgendaFaculdade
         private def create_login_session(env, user : Domain::User) : Nil
           token = @store.create_session(user.id, Time.utc + 30.days)
           set_cookie(env, SESSION_COOKIE, token, 30 * 24 * 60 * 60)
+        end
+
+        private def refresh_session_cookie(env) : Nil
+          token = session_token(env)
+          set_cookie(env, SESSION_COOKIE, token, 30 * 24 * 60 * 60) if token
         end
 
         private def session_token(env) : String?
