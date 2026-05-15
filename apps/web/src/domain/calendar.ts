@@ -32,6 +32,17 @@ export function buildMonthCalendar({
   const firstDay = new Date(Date.UTC(year, month, 1));
   const gridStart = new Date(firstDay);
   gridStart.setUTCDate(firstDay.getUTCDate() - firstDay.getUTCDay());
+  const eventsByDate = new Map<string, AcademicEvent[]>();
+
+  for (const event of events) {
+    const isoDate = event.startsAt.slice(0, 10);
+    const dayEvents = eventsByDate.get(isoDate);
+    if (dayEvents) {
+      dayEvents.push(event);
+    } else {
+      eventsByDate.set(isoDate, [event]);
+    }
+  }
 
   return Array.from({ length: 42 }, (_, index) => {
     const date = new Date(gridStart);
@@ -42,7 +53,7 @@ export function buildMonthCalendar({
       date,
       isoDate,
       inVisibleMonth: date.getUTCMonth() === month,
-      events: events.filter((event) => event.startsAt.slice(0, 10) === isoDate),
+      events: eventsByDate.get(isoDate) || [],
     };
   });
 }

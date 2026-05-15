@@ -26,9 +26,10 @@ describe("AgendaDashboard", () => {
     expect(screen.getAllByRole("button", { name: "Usuarios" }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: "Perfil" }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: "Nova data" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: "Agenda" })[0]).toHaveAttribute("aria-current", "page");
 
     fireEvent.click(screen.getAllByRole("button", { name: "Nova data" })[0]);
-    expect(screen.getByRole("heading", { name: "Nova data" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Nova data" })).toBeInTheDocument();
     expect(screen.getByLabelText("Titulo")).toBeInTheDocument();
     expect(screen.getByLabelText("Disciplina")).toBeInTheDocument();
     expect(screen.getByLabelText("Tipo")).toBeInTheDocument();
@@ -40,6 +41,50 @@ describe("AgendaDashboard", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Perfil" })[0]);
     expect(screen.getByText("Google Calendar conectado")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Conectar Google Calendar" })).not.toBeInTheDocument();
+  });
+
+  it("marks active navigation and exposes the users search field", () => {
+    render(
+      <AgendaDashboard
+        me={{
+          id: "user-1",
+          email: "felipebianchini02@gmail.com",
+          name: "Felipe",
+          role: "admin",
+          status: "active",
+          calendarConnected: false,
+        }}
+        events={[]}
+        users={[]}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Usuarios" })[0]);
+
+    expect(screen.getAllByRole("button", { name: "Usuarios" })[0]).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("textbox", { name: "Buscar por nome ou email" })).toBeInTheDocument();
+  });
+
+  it("shows the calendar connect action when the user has not connected Google Calendar", () => {
+    render(
+      <AgendaDashboard
+        me={{
+          id: "user-1",
+          email: "felipebianchini02@gmail.com",
+          name: "Felipe",
+          role: "admin",
+          status: "active",
+          calendarConnected: false,
+        }}
+        events={[]}
+        users={[]}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Perfil" })[0]);
+
+    expect(screen.getByRole("button", { name: "Conectar Google Calendar" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Desconectar Google Calendar" })).not.toBeInTheDocument();
   });
 
   it("hides admin controls for members", () => {

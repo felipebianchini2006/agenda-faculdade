@@ -32,12 +32,13 @@ export function AgendaApp() {
   const refresh = useCallback(async () => {
     try {
       setError(null);
-      const nextMe = await getMe();
+      const [nextMe, nextEvents] = await Promise.all([getMe(), getEvents()]);
       setMe(nextMe);
-      const nextEvents = await getEvents();
       setEvents(nextEvents);
       if (nextMe.role === "admin") {
         setUsers(await getUsers());
+      } else {
+        setUsers([]);
       }
     } catch {
       setMe(null);
@@ -59,8 +60,9 @@ export function AgendaApp() {
 
   if (loading) {
     return (
-      <main className="login-screen">
+      <main className="login-screen" role="status" aria-live="polite" aria-busy="true">
         <Loader2 className="spin" size={28} />
+        <span>Carregando agenda...</span>
       </main>
     );
   }
@@ -117,7 +119,11 @@ export function AgendaApp() {
 
   return (
     <>
-      {error && <div className="toast">{error}</div>}
+      {error && (
+        <div className="toast" role="alert" aria-live="assertive">
+          {error}
+        </div>
+      )}
       <AgendaDashboard
         me={me}
         events={events}

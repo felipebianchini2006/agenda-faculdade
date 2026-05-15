@@ -118,6 +118,29 @@ export function AgendaDashboard({
     { view: "profile" as const, label: "Perfil", icon: UserRound },
   ];
 
+  const eventPanelLabel = useMemo(() => (form.id ? "Editar data" : "Nova data"), [form.id]);
+  const monthSummary = useMemo(
+    () =>
+      `${monthEvents.length} ${monthEvents.length === 1 ? "evento" : "eventos"} em ${monthLabel}`,
+    [monthEvents.length, monthLabel],
+  );
+  const eventsResultSummary = useMemo(() => {
+    if (filteredEvents.length === 0) {
+      return "Nenhum evento encontrado com os filtros atuais.";
+    }
+
+    return `${filteredEvents.length} ${filteredEvents.length === 1 ? "evento encontrado" : "eventos encontrados"} com os filtros atuais.`;
+  }, [filteredEvents.length]);
+  const usersResultSummary = useMemo(() => {
+    if (filteredUsers.length === 0) {
+      return userQuery.trim()
+        ? "Nenhum usuário encontrado para esta busca."
+        : "Mostrando todos os usuários ativos e inativos.";
+    }
+
+    return `${filteredUsers.length} ${filteredUsers.length === 1 ? "usuário encontrado" : "usuários encontrados"} na busca atual.`;
+  }, [filteredUsers.length, userQuery]);
+
   async function submitEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await onSaveEvent?.(form);
@@ -193,6 +216,7 @@ export function AgendaDashboard({
             isAdmin={isAdmin}
             monthEvents={monthEvents}
             monthLabel={monthLabel}
+            monthSummary={monthSummary}
             onCreateEvent={openCreateEvent}
             onEditEvent={editEvent}
             onNextMonth={() => setMonthOffset((value) => value + 1)}
@@ -213,6 +237,7 @@ export function AgendaDashboard({
             subjects={subjects}
             totalEvents={activeEvents.length}
             syncedEvents={me.calendarConnected ? activeEvents.length : 0}
+            eventResultsSummary={eventsResultSummary}
           />
         )}
 
@@ -223,6 +248,7 @@ export function AgendaDashboard({
             query={userQuery}
             setQuery={setUserQuery}
             users={filteredUsers}
+            usersResultSummary={usersResultSummary}
           />
         )}
 
@@ -251,17 +277,26 @@ export function AgendaDashboard({
       </nav>
 
       {panel === "event" && (
-        <section className="editor-backdrop" aria-label={form.id ? "Editar data" : "Nova data"}>
+        <section
+          className="editor-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="event-editor-title"
+          aria-describedby="event-editor-instructions"
+        >
           <div className="editor-panel">
             <div className="panel-heading">
               <div>
                 <p className="section-kicker">Evento acadêmico</p>
-                <h2>{form.id ? "Editar data" : "Nova data"}</h2>
+                <h2 id="event-editor-title">{eventPanelLabel}</h2>
               </div>
               <button className="icon-command" type="button" onClick={() => setPanel(null)} aria-label="Fechar formulario">
                 <X size={18} />
               </button>
             </div>
+            <p id="event-editor-instructions" className="sr-only">
+              {form.id ? "Edite os detalhes deste evento e confirme com Salvar data." : "Preencha os dados da nova data acadêmica e confirme com Salvar data."}
+            </p>
 
             <form className="event-form" onSubmit={submitEvent}>
               <label>
@@ -316,6 +351,7 @@ function AgendaView({
   isAdmin,
   monthEvents,
   monthLabel,
+  monthSummary,
   onCreateEvent,
   onEditEvent,
   onNextMonth,
@@ -325,6 +361,7 @@ function AgendaView({
   isAdmin: boolean;
   monthEvents: AcademicEvent[];
   monthLabel: string;
+  monthSummary: string;
   onCreateEvent: () => void;
   onEditEvent: (event: AcademicEvent) => void;
   onNextMonth: () => void;
@@ -337,7 +374,7 @@ function AgendaView({
           <div>
             <p className="section-kicker">Calendário mensal</p>
             <h1>Agenda Faculdade</h1>
-            <span>{monthLabel}</span>
+            <p className="month-label">{monthLabel}</p>
           </div>
           <div className="heading-actions">
             {isAdmin && (
@@ -355,6 +392,9 @@ function AgendaView({
               </button>
             </div>
           </div>
+          <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            {monthSummary}
+          </p>
         </div>
 
         <div className="week-labels" aria-hidden="true">
@@ -370,8 +410,8 @@ function AgendaView({
                 {day.events.map((event) => (
                   <button className={`event-chip ${event.kind}`} key={event.id} type="button" onClick={() => onEditEvent(event)}>
                     <span>{formatEventBadge(event.kind)}</span>
-                    <strong>{event.title}</strong>
-                    <small>{event.subject}</small>
+                    <strong className="truncate-text">{event.title}</strong>
+                    <small className="truncate-text">{event.subject}</small>
                   </button>
                 ))}
               </div>
@@ -405,8 +445,8 @@ function AgendaView({
           {monthEvents.slice(0, 4).map((event) => (
             <button className="upcoming-item" key={event.id} type="button" onClick={() => onEditEvent(event)}>
               <EventKindPill kind={event.kind} />
-              <strong>{event.title}</strong>
-              <small>{event.subject}</small>
+              <strong className="truncate-text">{event.title}</strong>
+              <small className="truncate-text">{event.subject}</small>
               <span>{formatDate(event.startsAt)}</span>
             </button>
           ))}
@@ -428,6 +468,7 @@ function EventsAdminView({
   subjects,
   syncedEvents,
   totalEvents,
+  eventResultsSummary,
 }: {
   eventFilter: EventFilter;
   events: AcademicEvent[];
@@ -440,6 +481,7 @@ function EventsAdminView({
   subjects: string[];
   syncedEvents: number;
   totalEvents: number;
+  eventResultsSummary: string;
 }) {
   return (
     <section className="management-view">
@@ -468,6 +510,9 @@ function EventsAdminView({
 
       <section className="filter-panel">
         <h2>Filtros rápidos</h2>
+        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {eventResultsSummary}
+        </p>
         <div className="filter-row">
           <FilterButton active={eventFilter === "all"} onClick={() => onFilterChange("all")}>
             Todos
@@ -509,12 +554,14 @@ function UsersAdminView({
   query,
   setQuery,
   users,
+  usersResultSummary,
 }: {
   onCreateTestMember?: () => Promise<void> | void;
   onUpdateUser?: (userId: string, patch: Pick<ManagedUser, "role" | "status">) => Promise<void> | void;
   query: string;
   setQuery: (query: string) => void;
   users: ManagedUser[];
+  usersResultSummary: string;
 }) {
   return (
     <section className="management-view wide">
@@ -527,8 +574,11 @@ function UsersAdminView({
 
       <div className="search-field">
         <Search size={18} />
-        <input placeholder="Buscar por nome ou email..." value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input aria-label="Buscar por nome ou email" placeholder="Buscar por nome ou email..." value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {usersResultSummary}
+      </p>
 
       {onCreateTestMember && (
         <button className="secondary-action" type="button" onClick={() => void onCreateTestMember()}>
@@ -689,8 +739,8 @@ function EventCard({
         <div className="event-title-row">
           <div>
             <EventKindPill kind={event.kind} />
-            <h3>{event.title}</h3>
-            <p>{event.subject}</p>
+            <h3 className="truncate-text">{event.title}</h3>
+            <p className="truncate-text">{event.subject}</p>
           </div>
           {isAdmin && (
             <div className="event-actions">
@@ -774,7 +824,13 @@ function NavButton({
   onClick: () => void;
 }) {
   return (
-    <button className={`nav-item ${active ? "active" : ""}`} type="button" onClick={onClick} aria-label={label}>
+    <button
+      className={`nav-item ${active ? "active" : ""}`}
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-current={active ? "page" : undefined}
+    >
       <Icon size={22} />
       <span>{displayLabel || label}</span>
     </button>
