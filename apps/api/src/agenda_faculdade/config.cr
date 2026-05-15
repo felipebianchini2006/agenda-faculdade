@@ -34,7 +34,7 @@ module AgendaFaculdade
     end
 
     def self.load : Config
-      Config.new(
+      config = Config.new(
         app_env: env("APP_ENV", "development"),
         port: env("PORT", "4000").to_i,
         frontend_origin: env("FRONTEND_ORIGIN", "http://localhost:3000"),
@@ -50,6 +50,8 @@ module AgendaFaculdade
         google_userinfo_url: env("GOOGLE_USERINFO_URL", "https://openidconnect.googleapis.com/v1/userinfo"),
         google_calendar_api_base_url: env("GOOGLE_CALENDAR_API_BASE_URL", "https://www.googleapis.com/calendar/v3")
       )
+      config.validate!
+      config
     end
 
     def production? : Bool
@@ -65,19 +67,51 @@ module AgendaFaculdade
     end
 
     def test_auth_enabled? : Bool
-      ENV["ENABLE_TEST_AUTH"]? == "true"
+      test? && ENV["ENABLE_TEST_AUTH"]? == "true"
     end
 
     def fake_google_calendar? : Bool
-      ENV["FAKE_GOOGLE_CALENDAR"]? == "true"
+      test? && ENV["FAKE_GOOGLE_CALENDAR"]? == "true"
     end
 
     def sync_inline? : Bool
       ENV["SYNC_INLINE"]? == "true"
     end
 
+    def validate! : Nil
+      return unless production?
+
+      reject_enabled_test_flag("ENABLE_TEST_AUTH")
+      reject_enabled_test_flag("FAKE_GOOGLE_CALENDAR")
+      require_https("FRONTEND_ORIGIN", frontend_origin)
+      require_https("APP_BASE_URL", app_base_url)
+      reject_placeholder("SESSION_SECRET", session_secret, 32)
+      reject_placeholder("OAUTH_TOKEN_ENCRYPTION_KEY", token_encryption_key, 32)
+      reject_placeholder("GOOGLE_CLIENT_ID", google_client_id, 10)
+      reject_placeholder("GOOGLE_CLIENT_SECRET", google_client_secret, 10)
+    end
+
     private def self.env(key : String, fallback : String) : String
       ENV[key]? || fallback
+    end
+
+    private def reject_enabled_test_flag(key : String) : Nil
+      return unless ENV[key]? == "true"
+
+      raise ArgumentError.new("#{key} cannot be enabled when APP_ENV=production")
+    end
+
+    private def require_https(key : String, value : String) : Nil
+      return if value.starts_with?("https://")
+
+      raise ArgumentError.new("#{key} must use https:// in production")
+    end
+
+    private def reject_placeholder(key : String, value : String, minimum_size : Int32) : Nil
+      placeholders = ["replace-me", "dev-session-secret-change-me", "0123456789abcdef0123456789abcdef", "troque-por-uma-chave-segura"]
+      if value.size < minimum_size || placeholders.includes?(value)
+        raise ArgumentError.new("#{key} must be configured with a production secret")
+      end
     end
   end
 end

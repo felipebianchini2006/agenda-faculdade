@@ -14,9 +14,41 @@ module AgendaFaculdade
           context.response.headers["Access-Control-Allow-Credentials"] = "true"
           context.response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Test-User-Email, X-Test-User-Name"
           context.response.headers["Access-Control-Allow-Methods"] = "GET,POST,PATCH,DELETE,OPTIONS"
+          context.response.headers["Vary"] = "Origin"
 
           if context.request.method == "OPTIONS"
             context.response.status_code = 204
+            return
+          end
+
+          call_next(context)
+        end
+      end
+
+      class OriginGuard
+        SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+        def self.allowed?(method : String, origin : String?, allowed_origin : String) : Bool
+          return true if SAFE_METHODS.includes?(method.upcase)
+          return true unless origin
+
+          normalize_origin(origin) == normalize_origin(allowed_origin)
+        end
+
+        private def self.normalize_origin(origin : String) : String
+          origin.ends_with?("/") ? origin[0, origin.size - 1] : origin
+        end
+      end
+
+      class OriginGuardHandler < Kemal::Handler
+        def initialize(@origin : String)
+        end
+
+        def call(context)
+          unless OriginGuard.allowed?(context.request.method, context.request.headers["Origin"]?, @origin)
+            context.response.status_code = 403
+            context.response.content_type = "application/json"
+            context.response.print({"error" => "forbidden origin"}.to_json)
             return
           end
 
@@ -36,6 +68,7 @@ module AgendaFaculdade
 
         def mount : Nil
           use CorsHandler.new(@config.frontend_origin)
+          use OriginGuardHandler.new(@config.frontend_origin)
 
           options "/*" do |env|
             env.response.status_code = 204
@@ -75,8 +108,10 @@ module AgendaFaculdade
           get "/auth/google/callback" do |env|
             state = env.params.query["state"]?
             unless state && state == cookie_value(env, "oauth_state")
+              clear_cookie(env, "oauth_state")
               next json(env, {"error" => "invalid oauth state"}, 400)
             end
+            clear_cookie(env, "oauth_state")
 
             code = env.params.query["code"]?
             unless code
@@ -111,8 +146,10 @@ module AgendaFaculdade
 
             state = env.params.query["state"]?
             unless state && state == cookie_value(env, "calendar_oauth_state")
+              clear_cookie(env, "calendar_oauth_state")
               next json(env, {"error" => "invalid oauth state"}, 400)
             end
+            clear_cookie(env, "calendar_oauth_state")
 
             code = env.params.query["code"]?
             unless code
@@ -319,7 +356,8 @@ module AgendaFaculdade
 
         private def create_login_session(env, user : Domain::User) : Nil
           token = @store.create_session(user.id, Time.utc + 30.days)
-          set_cookie(env, SESSION_COOKIE, token, 30 * 24 * 60 * 60)
+          same_site = @config.production? ? "Strict" : "Lax"
+          set_cookie(env, SESSION_COOKIE, token, 30 * 24 * 60 * 60, same_site)
         end
 
         private def session_token(env) : String?
@@ -330,14 +368,20 @@ module AgendaFaculdade
           env.request.cookies[name]?.try(&.value)
         end
 
-        private def set_cookie(env, name : String, value : String, max_age : Int32) : Nil
-          parts = ["#{name}=#{URI.encode_www_form(value)}", "Path=/", "HttpOnly", "SameSite=Lax", "Max-Age=#{max_age}"]
+        private def set_cookie(env, name : String, value : String, max_age : Int32, same_site : String = "Lax") : Nil
+          parts = ["#{name}=#{URI.encode_www_form(value)}", "Path=/", "HttpOnly", "SameSite=#{same_site}", "Max-Age=#{max_age}"]
           parts << "Secure" if @config.production?
           env.response.headers.add("Set-Cookie", parts.join("; "))
         end
 
         private def clear_session_cookie(env) : Nil
-          env.response.headers.add("Set-Cookie", "#{SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0")
+          clear_cookie(env, SESSION_COOKIE, @config.production? ? "Strict" : "Lax")
+        end
+
+        private def clear_cookie(env, name : String, same_site : String = "Lax") : Nil
+          parts = ["#{name}=;", "Path=/", "HttpOnly", "SameSite=#{same_site}", "Max-Age=0"]
+          parts << "Secure" if @config.production?
+          env.response.headers.add("Set-Cookie", parts.join("; "))
         end
 
         private def request_json(env) : JSON::Any
