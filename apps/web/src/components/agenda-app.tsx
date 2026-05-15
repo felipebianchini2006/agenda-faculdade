@@ -95,7 +95,7 @@ export function AgendaApp() {
                 }
               }}
             >
-              Entrar como Felipe
+              Entrar com Google
             </a>
             {process.env.NEXT_PUBLIC_TEST_AUTH === "true" && (
               <a

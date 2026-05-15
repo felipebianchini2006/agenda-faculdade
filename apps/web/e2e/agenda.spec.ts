@@ -5,7 +5,7 @@ test("admin creates an event, sees it on desktop/mobile agenda, and member canno
   await api.post("/api/test/reset");
 
   await page.goto("/");
-  await page.getByRole("link", { name: "Entrar como Felipe" }).click();
+  await page.getByRole("link", { name: "Entrar com Google" }).click();
 
   await expect(page.getByRole("heading", { name: "Agenda Faculdade" })).toBeVisible();
   await page.getByRole("button", { name: "Perfil" }).first().click();
