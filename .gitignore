@@ -1,0 +1,16 @@
+node_modules/
+.next/
+coverage/
+playwright-report/
+test-results/
+dist/
+build/
+bin/
+/lib/
+apps/api/lib/
+.shards/
+.env
+.env.local
+.env.test
+*.log
+tmp/

@@ -1,0 +1,16 @@
+{
+  "name": "agenda-faculdade",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "test": "npm run test --workspace @agenda/web",
+    "build": "npm run build --workspace @agenda/web",
+    "lint": "npm run lint --workspace @agenda/web",
+    "e2e": "npm run e2e --workspace @agenda/web",
+    "dev:web": "npm run dev --workspace @agenda/web",
+    "docker:up": "docker compose up --build"
+  }
+}
+

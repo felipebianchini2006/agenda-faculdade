@@ -1,0 +1,12 @@
+.git
+node_modules
+apps/web/node_modules
+apps/web/.next
+apps/api/lib
+apps/api/.shards
+coverage
+playwright-report
+test-results
+tmp
+*.log
+
