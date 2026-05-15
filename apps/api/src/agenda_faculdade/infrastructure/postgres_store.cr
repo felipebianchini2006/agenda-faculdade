@@ -77,16 +77,30 @@ module AgendaFaculdade
           avatar_url: avatar_url
         )
 
-        @db.exec(
-          "INSERT INTO users (id, email, google_sub, name, avatar_url, role, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-          user.id,
-          user.email,
-          user.google_sub,
-          user.name,
-          user.avatar_url,
-          user.role.to_db,
-          user.status.to_db
-        )
+        begin
+          @db.exec(
+            "INSERT INTO users (id, email, google_sub, name, avatar_url, role, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            user.id,
+            user.email,
+            user.google_sub,
+            user.name,
+            user.avatar_url,
+            user.role.to_db,
+            user.status.to_db
+          )
+        rescue ex
+          raced_user = find_user_by_google_sub(google_sub) || find_user_by_email(email)
+          raise ex unless raced_user
+
+          @db.exec(
+            "UPDATE users SET email = $1, name = $2, avatar_url = $3, updated_at = NOW() WHERE id = $4",
+            user.email,
+            user.name,
+            user.avatar_url,
+            raced_user.id
+          )
+          return find_user_by_id(raced_user.id).not_nil!
+        end
         user
       end
 

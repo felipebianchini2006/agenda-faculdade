@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    command: crystal run src/main.cr
+    command: ./bin/agenda-api
     environment:
       APP_ENV: ${APP_ENV:-development}
       PORT: ${PORT:-4000}
@@ -45,7 +45,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    command: crystal run src/worker.cr
+    command: ./bin/agenda-worker
     environment:
       APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: ${DATABASE_URL:-postgres://agenda:agenda@postgres:5432/agenda_faculdade}

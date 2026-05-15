@@ -7,7 +7,10 @@ COPY apps/api/shard.yml ./
 RUN shards install
 
 COPY apps/api ./
+RUN mkdir -p bin && \
+    crystal build --release src/main.cr -o bin/agenda-api && \
+    crystal build --release src/worker.cr -o bin/agenda-worker
 EXPOSE 4000
 
-CMD ["crystal", "run", "src/main.cr"]
+CMD ["./bin/agenda-api"]
 

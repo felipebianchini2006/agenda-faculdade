@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS academic_events (
 );
 
 CREATE INDEX IF NOT EXISTS idx_academic_events_starts_at ON academic_events(starts_at);
+CREATE INDEX IF NOT EXISTS idx_academic_events_status_starts_at ON academic_events(status, starts_at);
 
 CREATE TABLE IF NOT EXISTS calendar_event_syncs (
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -73,6 +74,7 @@ CREATE TABLE IF NOT EXISTS sync_jobs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sync_jobs_pending ON sync_jobs(status, available_at);
+CREATE INDEX IF NOT EXISTS idx_sync_jobs_pending_created_at ON sync_jobs(status, available_at, created_at);
 
 CREATE TABLE IF NOT EXISTS fake_calendar_requests (
   id TEXT PRIMARY KEY,
