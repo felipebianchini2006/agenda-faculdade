@@ -8,10 +8,12 @@ test("admin creates an event, sees it on desktop/mobile agenda, and member canno
   await page.getByRole("link", { name: "Entrar como Felipe" }).click();
 
   await expect(page.getByRole("heading", { name: "Agenda Faculdade" })).toBeVisible();
+  await page.getByRole("button", { name: "Perfil" }).first().click();
   await page.getByRole("button", { name: "Conectar Google Calendar" }).click();
   await expect(page.getByText("Google Calendar conectado")).toBeVisible();
+  await page.getByRole("button", { name: "Agenda" }).first().click();
 
-  await page.getByRole("button", { name: "Nova data" }).click();
+  await page.getByRole("button", { name: "Nova data" }).first().click();
   await page.getByLabel("Titulo").fill("Prova P1");
   await page.getByLabel("Disciplina").fill("Calculo");
   await page.getByLabel("Tipo").selectOption("exam");
@@ -21,8 +23,8 @@ test("admin creates an event, sees it on desktop/mobile agenda, and member canno
   await page.getByRole("button", { name: "Salvar data" }).click();
 
   const calendar = page.getByLabel("Calendario academico");
-  await expect(calendar.getByText("Prova P1")).toBeVisible();
-  await expect(calendar.getByText("Calculo")).toBeVisible();
+  await expect(calendar.getByText("Prova P1").filter({ visible: true })).toBeVisible();
+  await expect(calendar.getByText("Calculo").filter({ visible: true })).toBeVisible();
   await expect
     .poll(async () => {
       const response = await api.get("/api/test/calendar-requests");
@@ -31,13 +33,13 @@ test("admin creates an event, sees it on desktop/mobile agenda, and member canno
     })
     .toContain("insert");
 
-  await page.getByRole("button", { name: "Usuarios" }).click();
+  await page.getByRole("button", { name: "Usuarios" }).first().click();
   await page.getByRole("button", { name: "Criar membro teste" }).click();
   await expect(page.getByText("colega@example.com")).toBeVisible();
 
   await page.getByRole("button", { name: "Sair" }).click();
   await page.getByRole("link", { name: "Entrar como membro" }).click();
 
-  await expect(page.getByLabel("Calendario academico").getByText("Prova P1")).toBeVisible();
+  await expect(page.getByLabel("Calendario academico").getByText("Prova P1").filter({ visible: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Nova data" })).toHaveCount(0);
 });

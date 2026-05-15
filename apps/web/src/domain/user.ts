@@ -5,6 +5,7 @@ export type CurrentUser = {
   id: string;
   email: string;
   name: string;
+  avatarUrl?: string | null;
   role: UserRole;
   status: UserStatus;
   calendarConnected: boolean;
@@ -14,6 +15,7 @@ export type ManagedUser = {
   id: string;
   email: string;
   name: string;
+  avatarUrl?: string | null;
   role: UserRole;
   status: UserStatus;
 };
