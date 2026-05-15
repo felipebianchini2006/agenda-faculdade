@@ -97,6 +97,10 @@ export async function connectCalendar() {
   window.location.href = apiUrl("/auth/google/calendar/start");
 }
 
+export async function disconnectCalendar() {
+  await apiFetch<{ ok: boolean }>("/auth/google/calendar/disconnect", { method: "POST" });
+}
+
 export async function createTestMember() {
   const payload = await apiFetch<{ user: ManagedUser }>("/api/admin/users/test-member", { method: "POST" });
   return payload.user;

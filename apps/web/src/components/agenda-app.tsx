@@ -10,6 +10,7 @@ import {
   connectCalendar,
   createTestMember,
   deleteEvent,
+  disconnectCalendar,
   getEvents,
   getMe,
   getUsers,
@@ -72,6 +73,17 @@ export function AgendaApp() {
           <p className="eyebrow">Agenda Faculdade</p>
           <h1>Suas provas e trabalhos em um calendario simples.</h1>
           <p>Entre com sua conta Google para sincronizar as datas no seu proprio Google Calendar.</p>
+          <div className="login-disclosure">
+            <p>
+              O app usa o Google Calendar apenas para criar, atualizar e remover eventos academicos que aparecem na sua agenda. Nao vendemos dados e nao lemos
+              eventos pessoais para exibicao no app.
+            </p>
+            <nav aria-label="Informacoes legais">
+              <a href="/sobre">Sobre</a>
+              <a href="/privacidade">Privacidade</a>
+              <a href="/termos">Termos</a>
+            </nav>
+          </div>
           <div className="login-actions">
             <a
               href={loginHref("admin")}
@@ -116,6 +128,10 @@ export function AgendaApp() {
         }}
         onConnectCalendar={async () => {
           await connectCalendar();
+          await refresh();
+        }}
+        onDisconnectCalendar={async () => {
+          await disconnectCalendar();
           await refresh();
         }}
         onSaveEvent={async (input) => {

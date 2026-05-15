@@ -99,7 +99,7 @@ module AgendaFaculdade
             env.redirect @oauth.auth_url(
               state,
               "/auth/google/calendar/callback",
-              ["https://www.googleapis.com/auth/calendar.events"],
+              ["https://www.googleapis.com/auth/calendar.events.owned"],
               "offline",
               "consent"
             )
@@ -131,6 +131,14 @@ module AgendaFaculdade
             env.redirect @config.frontend_origin
           end
 
+          post "/auth/google/calendar/disconnect" do |env|
+            user = require_user(env)
+            next user unless user.is_a?(Domain::User)
+
+            @store.delete_calendar_connection(user.id)
+            json(env, {"ok" => true})
+          end
+
           get "/auth/test/login" do |env|
             next json(env, {"error" => "not found"}, 404) unless @config.test_auth_enabled?
 
@@ -146,7 +154,7 @@ module AgendaFaculdade
             user = require_user(env)
             next user unless user.is_a?(Domain::User)
 
-            @store.upsert_calendar_connection(user.id, @cipher.encrypt("fake-refresh-token-#{user.id}"), "calendar.events", Time.utc + 1.hour)
+            @store.upsert_calendar_connection(user.id, @cipher.encrypt("fake-refresh-token-#{user.id}"), "calendar.events.owned", Time.utc + 1.hour)
             @sync.enqueue_all_for_user(user.id)
             @sync.process_due if @config.sync_inline?
             json(env, {"ok" => true})

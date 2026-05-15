@@ -90,6 +90,18 @@ button {
   padding: 0 0.85rem;
 }
 
+.system-actions a,
+.legal-links a {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0 0.85rem;
+}
+
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -1040,6 +1052,29 @@ textarea {
   margin: 0 0 0.95rem;
 }
 
+.login-disclosure {
+  background: var(--surface-soft);
+  border: 1px solid var(--surface-strong);
+  border-radius: 8px;
+  margin-top: 1rem;
+  padding: 0.85rem;
+}
+
+.login-disclosure p {
+  font-size: 0.92rem;
+}
+
+.login-disclosure nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.login-disclosure a {
+  color: var(--secondary);
+  font-weight: 700;
+}
+
 .login-actions {
   display: flex;
   gap: 0.6rem;
@@ -1055,6 +1090,42 @@ textarea {
   display: inline-flex;
   height: 42px;
   padding: 0 0.8rem;
+}
+
+.legal-page {
+  display: grid;
+  min-height: 100vh;
+  padding: 1.5rem;
+  place-items: start center;
+}
+
+.legal-card {
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 0.95rem;
+  max-width: 860px;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  width: 100%;
+}
+
+.legal-card h1,
+.legal-card h2,
+.legal-card p {
+  margin-bottom: 0;
+}
+
+.legal-card p {
+  color: var(--text-soft);
+}
+
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
 }
 
 .toast {

@@ -57,6 +57,7 @@ export function AgendaDashboard({
   users,
   onLogout,
   onConnectCalendar,
+  onDisconnectCalendar,
   onSaveEvent,
   onDeleteEvent,
   onCreateTestMember,
@@ -67,6 +68,7 @@ export function AgendaDashboard({
   users: ManagedUser[];
   onLogout?: () => Promise<void> | void;
   onConnectCalendar?: () => Promise<void> | void;
+  onDisconnectCalendar?: () => Promise<void> | void;
   onSaveEvent?: (event: EventFormState) => Promise<void> | void;
   onDeleteEvent?: (eventId: string) => Promise<void> | void;
   onCreateTestMember?: () => Promise<void> | void;
@@ -224,7 +226,9 @@ export function AgendaDashboard({
           />
         )}
 
-        {activeView === "profile" && <ProfileView me={me} onConnectCalendar={onConnectCalendar} onLogout={onLogout} />}
+        {activeView === "profile" && (
+          <ProfileView me={me} onConnectCalendar={onConnectCalendar} onDisconnectCalendar={onDisconnectCalendar} onLogout={onLogout} />
+        )}
       </section>
 
       {isAdmin && activeView === "agenda" && (
@@ -586,10 +590,12 @@ function UsersAdminView({
 function ProfileView({
   me,
   onConnectCalendar,
+  onDisconnectCalendar,
   onLogout,
 }: {
   me: CurrentUser;
   onConnectCalendar?: () => Promise<void> | void;
+  onDisconnectCalendar?: () => Promise<void> | void;
   onLogout?: () => Promise<void> | void;
 }) {
   return (
@@ -622,11 +628,20 @@ function ProfileView({
             </span>
           </div>
         </div>
-        <p>Sincronize automaticamente provas e entregas de trabalhos com sua agenda pessoal.</p>
+        <p>
+          Sincronize automaticamente provas e entregas de trabalhos com o calendario principal da sua conta Google. O app cria, atualiza e remove apenas os
+          eventos academicos gerados pela Agenda Faculdade.
+        </p>
         {!me.calendarConnected && (
           <button className="secondary-action full-width" type="button" onClick={() => void onConnectCalendar?.()}>
             <Link2 size={18} />
             Conectar Google Calendar
+          </button>
+        )}
+        {me.calendarConnected && (
+          <button className="ghost full-width" type="button" onClick={() => void onDisconnectCalendar?.()}>
+            <X size={18} />
+            Desconectar Google Calendar
           </button>
         )}
       </section>
@@ -639,10 +654,12 @@ function ProfileView({
       </section>
 
       <section className="system-actions">
-        <button type="button">
+        <a href="/sobre">
           <HelpCircle size={18} />
-          Central de Ajuda
-        </button>
+          Sobre o app
+        </a>
+        <a href="/privacidade">Privacidade</a>
+        <a href="/termos">Termos</a>
         <button className="danger ghost" type="button" onClick={() => void onLogout?.()} aria-label="Sair da Conta">
           <LogOut size={18} />
           Sair da Conta

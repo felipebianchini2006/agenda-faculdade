@@ -27,6 +27,31 @@ docker compose --env-file .env up --build -d
 
 O servico `proxy` publica a aplicacao em `HTTP_PORT` e encaminha `/api/*` e `/auth/*` para a API.
 
+## Google OAuth em producao
+
+Para liberar o app para qualquer usuario Google, publique e envie o app para verificacao no Google Cloud Console.
+
+URLs publicas para preencher no OAuth consent screen:
+
+- App home page: `https://calendario.felipeb.tech/sobre`
+- Privacy policy: `https://calendario.felipeb.tech/privacidade`
+- Terms of service: `https://calendario.felipeb.tech/termos`
+- Authorized domain: `felipeb.tech`
+
+Redirect URIs do OAuth client web:
+
+- `https://calendario.felipeb.tech/auth/google/callback`
+- `https://calendario.felipeb.tech/auth/google/calendar/callback`
+
+Scopes usados pelo app:
+
+- `openid`
+- `email`
+- `profile`
+- `https://www.googleapis.com/auth/calendar.events.owned`
+
+Justificativa do Calendar: a Agenda Faculdade cria, atualiza e remove eventos academicos no calendario principal do proprio usuario, para que ele receba lembretes do Google Calendar. O app nao le eventos pessoais existentes para exibicao no produto.
+
 ## Verificacao
 
 ```bash

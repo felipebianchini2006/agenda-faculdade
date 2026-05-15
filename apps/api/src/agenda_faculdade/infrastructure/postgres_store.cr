@@ -165,6 +165,10 @@ module AgendaFaculdade
         @db.query_one("SELECT COUNT(*) FROM google_calendar_connections WHERE user_id = $1 AND status = 'active'", user_id, as: Int64) > 0
       end
 
+      def delete_calendar_connection(user_id : String) : Nil
+        @db.exec("DELETE FROM google_calendar_connections WHERE user_id = $1", user_id)
+      end
+
       def find_calendar_connection(user_id : String) : CalendarConnection?
         @db.query_one?(
           "SELECT user_id, encrypted_refresh_token, scopes, token_expires_at, status FROM google_calendar_connections WHERE user_id = $1 AND status = 'active'",
