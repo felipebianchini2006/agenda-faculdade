@@ -356,8 +356,7 @@ module AgendaFaculdade
 
         private def create_login_session(env, user : Domain::User) : Nil
           token = @store.create_session(user.id, Time.utc + 30.days)
-          same_site = @config.production? ? "Strict" : "Lax"
-          set_cookie(env, SESSION_COOKIE, token, 30 * 24 * 60 * 60, same_site)
+          set_cookie(env, SESSION_COOKIE, token, 30 * 24 * 60 * 60)
         end
 
         private def session_token(env) : String?
@@ -375,7 +374,7 @@ module AgendaFaculdade
         end
 
         private def clear_session_cookie(env) : Nil
-          clear_cookie(env, SESSION_COOKIE, @config.production? ? "Strict" : "Lax")
+          clear_cookie(env, SESSION_COOKIE)
         end
 
         private def clear_cookie(env, name : String, same_site : String = "Lax") : Nil
