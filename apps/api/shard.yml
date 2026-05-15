@@ -1,0 +1,23 @@
+name: agenda_faculdade_api
+version: 0.1.0
+crystal: ">= 1.12.0"
+
+authors:
+  - Felipe Bianchini
+
+targets:
+  api:
+    main: src/main.cr
+  worker:
+    main: src/worker.cr
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+  pg:
+    github: will/crystal-pg
+  db:
+    github: crystal-lang/crystal-db
+
+license: MIT
+

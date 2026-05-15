@@ -1,0 +1,15 @@
+require "json"
+require "time"
+
+require "./agenda_faculdade/domain/errors"
+require "./agenda_faculdade/domain/user"
+require "./agenda_faculdade/domain/academic_event"
+require "./agenda_faculdade/application/calendar_payload_builder"
+require "./agenda_faculdade/config"
+require "./agenda_faculdade/infrastructure/postgres_store"
+require "./agenda_faculdade/infrastructure/token_cipher"
+require "./agenda_faculdade/infrastructure/google_oauth_client"
+require "./agenda_faculdade/infrastructure/google_calendar_client"
+require "./agenda_faculdade/application/sync_service"
+require "./agenda_faculdade/interfaces/http/app"
+
